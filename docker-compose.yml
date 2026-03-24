@@ -1,0 +1,21 @@
+services:
+  browser:
+    build: .
+    image: camoufox
+    container_name: camoufox-${ACCOUNT}
+    ports:
+      - "127.0.0.1:${PORT}:6901"
+    environment:
+      PROXY: ${PROXY}
+      CAM_OS: ${CAM_OS:-windows}
+      CAM_SEED: ${CAM_SEED:-0}
+      CAM_SCREEN: ${CAM_SCREEN:-1280x720}
+      TZ: ${TZ:-Europe/Berlin}
+      HOMEPAGE: ${HOMEPAGE:-https://ipleak.net}
+      VNC_PW: ${VNC_PW}
+    volumes:
+      - ./accounts/${ACCOUNT}/profile:/home/user/.mozilla:rw
+    cap_add:
+      - NET_ADMIN
+    shm_size: "512m"
+    restart: unless-stopped
