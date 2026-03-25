@@ -112,5 +112,12 @@ The skill reads all relevant scripts and config, then checks for proxy leaks, DN
 ```
 accounts/<name>/
 ├── .env       # Account config (proxy, port, fingerprint settings)
-└── profile/   # Persistent Firefox profile (mounted → /home/user/.mozilla)
+├── profile/   # Persistent Firefox profile (mounted → /home/user/.mozilla)
+└── files/     # Shared folder for uploading files into the browser (mounted → /home/user/files)
+```
+
+To make a file accessible inside the browser, copy it into `accounts/<name>/files/` and open it via:
+
+```
+file:///home/user/files/<filename>
 ```

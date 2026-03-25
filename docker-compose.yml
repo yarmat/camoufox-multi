@@ -15,6 +15,7 @@ services:
       VNC_PW: ${VNC_PW}
     volumes:
       - ./accounts/${ACCOUNT}/profile:/home/user/.mozilla:rw
+      - ./accounts/${ACCOUNT}/files:/home/user/files:rw
     cap_add:
       - NET_ADMIN
     shm_size: "512m"

@@ -4,6 +4,8 @@ from browserforge.fingerprints import Screen
 import hashlib
 import os
 import re
+import signal
+import sys
 import time
 
 proxy_url  = os.getenv("PROXY")
@@ -42,6 +44,15 @@ _cam_screen = os.getenv("CAM_SCREEN", "1600x980").split("x")
 _screen_w, _screen_h = int(_cam_screen[0]), int(_cam_screen[1])
 constrains = Screen(max_width=_screen_w, max_height=_screen_h)
 
+def _graceful_exit(signum, frame):
+    """Handle SIGTERM/SIGINT so the 'with Camoufox' block exits cleanly,
+    flushing Firefox profile (cookies, sessions) to disk before shutdown."""
+    print(f"[browser] Signal {signum} received — shutting down gracefully")
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, _graceful_exit)
+signal.signal(signal.SIGINT, _graceful_exit)
+
 with Camoufox(
     headless=False,
     os=os_type,
@@ -51,7 +62,15 @@ with Camoufox(
     persistent_context=True,
     user_data_dir="/home/user/.mozilla",
     firefox_user_prefs={
-        "browser.startup.page": 3,  # restore previous session on startup
+        "browser.startup.page": 3,                  # restore previous session on startup
+        "privacy.sanitize.sanitizeOnShutdown": False,
+        "privacy.clearOnShutdown.cookies": False,
+        "privacy.clearOnShutdown.sessions": False,
+        "privacy.clearOnShutdown.offlineApps": False,
+        "privacy.clearOnShutdown.cache": False,
+        "privacy.clearOnShutdown.formdata": False,
+        "privacy.clearOnShutdown.history": False,
+        "network.cookie.lifetimePolicy": 0,          # keep cookies across restarts
     },
     config=fp_config,
     screen=constrains,

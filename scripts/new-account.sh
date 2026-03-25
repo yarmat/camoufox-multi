@@ -119,8 +119,9 @@ if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
     exit 0
 fi
 
-# Create account directory and profile
+# Create account directory, profile, and shared files folder
 mkdir -p "$ACCOUNTS_DIR/$ACCOUNT/profile"
+mkdir -p "$ACCOUNTS_DIR/$ACCOUNT/files"
 
 # Write .env file
 cat > "$ACCOUNTS_DIR/$ACCOUNT/.env" <<EOF

@@ -1,5 +1,6 @@
 # Account data — profiles contain browser state, .env files contain proxy credentials
 accounts/*/profile/
+accounts/*/files/
 accounts/*/.env
 
 # macOS
