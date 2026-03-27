@@ -78,15 +78,21 @@ with Camoufox(
 ) as browser:
     blank_urls = ("about:blank", "about:newtab", "about:home", "")
     all_pages = browser.pages
-    # Close blank pages opened by Playwright on startup
-    for p in all_pages:
-        if p.url in blank_urls:
-            p.close()
     real_pages = [p for p in all_pages if p.url not in blank_urls]
+    blank_pages = [p for p in all_pages if p.url in blank_urls]
     if real_pages:
+        # Session restored — close leftover blank tabs
+        for p in blank_pages:
+            p.close()
         print(f"[browser] Restored previous session ({len(real_pages)} tab(s))")
     else:
-        page = browser.new_page()
+        # No real session — navigate first blank page to homepage, close the rest
+        if blank_pages:
+            page = blank_pages[0]
+            for p in blank_pages[1:]:
+                p.close()
+        else:
+            page = browser.new_page()
         page.goto(homepage)
         print(f"[browser] Page loaded: {homepage}")
     while True:
