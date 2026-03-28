@@ -26,6 +26,7 @@ if [[ "$PROXY_TYPE" != "http" && "$PROXY_TYPE" != "socks5" ]]; then
 fi
 
 # 3. Proxy address
+echo "  Tip: for a local proxy on your host machine use host.docker.internal instead of 127.0.0.1"
 read -rp "Proxy address (host:port): " PROXY_ADDR
 if [[ -z "$PROXY_ADDR" ]]; then
     echo "Error: proxy address is required"
@@ -95,10 +96,10 @@ if ! [[ "$CAM_SCREEN" =~ ^[0-9]+x[0-9]+$ ]]; then
 fi
 
 # 8. OS fingerprint
-read -rp "OS fingerprint (windows/macos/linux) [linux]: " CAM_OS
-CAM_OS="${CAM_OS:-linux}"
-if [[ "$CAM_OS" != "windows" && "$CAM_OS" != "macos" && "$CAM_OS" != "linux" ]]; then
-    echo "Error: OS must be 'windows', 'macos', or 'linux'"
+read -rp "OS fingerprint (windows/macos) [windows]: " CAM_OS
+CAM_OS="${CAM_OS:-windows}"
+if [[ "$CAM_OS" != "windows" && "$CAM_OS" != "macos" ]]; then
+    echo "Error: OS must be 'windows' or 'macos' (linux is not supported by browserforge)"
     exit 1
 fi
 

@@ -55,7 +55,7 @@ accounts/<name>/
 | `PROXY` | Full proxy URL: `http://user:pass@host:port` or `socks5://host:port` |
 | `PORT` | Host port for noVNC (auto-selected from 6901+) |
 | `VNC_PW` | VNC password (random 12 chars by default) |
-| `CAM_OS` | Camoufox OS fingerprint: `windows` / `macos` / `linux` |
+| `CAM_OS` | Camoufox OS fingerprint: `windows` / `macos` (linux not supported by browserforge) |
 | `CAM_SEED` | Stable per-account fingerprint seed (random uint32, derived into canvas/font/audio offsets) |
 | `CAM_SCREEN` | Virtual screen resolution in `WxH` format, e.g. `1280x720` |
 | `TZ` | Container timezone (auto-detected from proxy geolocation) |

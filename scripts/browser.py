@@ -43,6 +43,7 @@ print(f"[browser] Fingerprint seeds: {fp_config}")
 _cam_screen = os.getenv("CAM_SCREEN", "1600x980").split("x")
 _screen_w, _screen_h = int(_cam_screen[0]), int(_cam_screen[1])
 constrains = Screen(max_width=_screen_w, max_height=_screen_h)
+_window_size = (_screen_w, _screen_h)
 
 def _graceful_exit(signum, frame):
     """Handle SIGTERM/SIGINT so the 'with Camoufox' block exits cleanly,
@@ -74,6 +75,7 @@ with Camoufox(
     },
     config=fp_config,
     screen=constrains,
+    window=_window_size,
     enable_cache=True,
 ) as browser:
     blank_urls = ("about:blank", "about:newtab", "about:home", "")
@@ -93,7 +95,10 @@ with Camoufox(
                 p.close()
         else:
             page = browser.new_page()
-        page.goto(homepage)
-        print(f"[browser] Page loaded: {homepage}")
+        try:
+            page.goto(homepage, timeout=60000)
+            print(f"[browser] Page loaded: {homepage}")
+        except Exception as e:
+            print(f"[browser] WARNING: Could not load homepage ({e.__class__.__name__}), continuing anyway")
     while True:
         time.sleep(60)

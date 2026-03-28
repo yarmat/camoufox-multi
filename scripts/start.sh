@@ -9,6 +9,7 @@ bash /scripts/setup-proxy.sh
 _CAM_SCREEN="${CAM_SCREEN:-1600x980}"
 _XVFB_W=$(( ${_CAM_SCREEN%%x*} + 200 ))
 _XVFB_H=$(( ${_CAM_SCREEN##*x} + 200 ))
+rm -f /tmp/.X99-lock /tmp/.X11-unix/X99
 Xvfb :99 -screen 0 "${_XVFB_W}x${_XVFB_H}x24" &
 export DISPLAY=:99
 sleep 1
