@@ -22,6 +22,7 @@ help:
 	@echo "  make list                     List all accounts with status"
 	@echo "  make set-proxy ACCOUNT=<name> Update proxy for account"
 	@echo "  make clean  ACCOUNT=<name>    Wipe browser profile"
+	@echo "  make fresh  ACCOUNT=<name>    Wipe profile + generate new fingerprint seed"
 	@echo "  make remove ACCOUNT=<name>    Remove container + account folder"
 	@echo "  make check-leaks ACCOUNT=<name> Run leak detection inside container"
 	@echo "  make build                    Build Docker image"
@@ -130,6 +131,25 @@ clean: _require-account
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
 		rm -rf $(ACCOUNTS_DIR)/$(ACCOUNT)/profile/*; \
 		echo "✓ Profile wiped for $(ACCOUNT)"; \
+	else \
+		echo "Aborted."; \
+	fi
+
+.PHONY: fresh
+fresh: _require-account
+	@echo "This will wipe the browser profile and generate a new fingerprint seed for '$(ACCOUNT)'."
+	@read -rp "Are you sure? (y/N): " confirm; \
+	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+		running=$$(docker ps --filter "name=camoufox-$(ACCOUNT)" --format "{{.Names}}" 2>/dev/null); \
+		if [ -n "$$running" ]; then \
+			docker compose --env-file $(ACCOUNTS_DIR)/$(ACCOUNT)/.env down; \
+		fi; \
+		rm -rf $(ACCOUNTS_DIR)/$(ACCOUNT)/profile/*; \
+		new_seed=$$(python3 -c 'import random; print(random.randint(0, 4294967295))'); \
+		sed -i.bak "s|^CAM_SEED=.*|CAM_SEED=$$new_seed|" $(ACCOUNTS_DIR)/$(ACCOUNT)/.env && \
+		rm -f $(ACCOUNTS_DIR)/$(ACCOUNT)/.env.bak; \
+		echo "✓ Profile wiped, new fingerprint seed: $$new_seed"; \
+		echo "  Start with: make up ACCOUNT=$(ACCOUNT)"; \
 	else \
 		echo "Aborted."; \
 	fi
