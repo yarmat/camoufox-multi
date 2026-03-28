@@ -49,7 +49,7 @@ Each account lives in `accounts/<name>/.env`:
 | `PROXY` | `http://user:pass@host:port` | Proxy URL (http or socks5) |
 | `PORT` | `6901` | Host port for noVNC (auto-selected) |
 | `VNC_PW` | `abc123xyz` | VNC password |
-| `CAM_OS` | `windows` / `macos` / `linux` | OS fingerprint spoofed by Camoufox |
+| `CAM_OS` | `windows` / `macos` | OS fingerprint spoofed by Camoufox |
 | `CAM_SEED` | `1234567890` | Stable fingerprint seed (random per account) |
 | `CAM_SCREEN` | `1280x720` | Virtual screen resolution (WxH) |
 | `TZ` | `Europe/Berlin` | Container timezone (auto-detected from proxy) |
