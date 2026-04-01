@@ -233,7 +233,28 @@ if [ -n "${PROXY:-}" ]; then
 else
     warn "No proxy — DNS queries go to system resolver directly"
 fi
-info "Canvas / WebGL / WebRTC fingerprints require browser — check manually at ipleak.net or browserleaks.com"
+info "Canvas / WebGL / WebRTC fingerprints checked in section [9] below"
+
+# ── 9. Browser fingerprint check (Camoufox JS probes) ────────────────────────
+echo -e "\n${BOLD}[9] Browser fingerprint check${NC}"
+if ! command -v gosu >/dev/null 2>&1; then
+    echo -e "  ${YELLOW}!${NC} gosu not available — skipping fingerprint check"
+elif ! python3 -c "from camoufox.sync_api import Camoufox" 2>/dev/null; then
+    echo -e "  ${YELLOW}!${NC} camoufox Python package not found — skipping"
+else
+    # Run as unprivileged user so it can access the Xvfb display (:99).
+    # Use a temporary profile (no persistent_context) to avoid locking the
+    # live profile used by browser.py.
+    if gosu user env DISPLAY=:99 python3 /scripts/check-fingerprint.py; then
+        : # pass/fail output is printed by the script itself
+    else
+        SCRIPT_EXIT=$?
+        if [ "$SCRIPT_EXIT" -eq 1 ]; then
+            FAILED=$((FAILED + 1))
+        fi
+        # exit 2 = script itself crashed; already printed the error
+    fi
+fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo -e "\n${BOLD}=== Summary ===${NC}"

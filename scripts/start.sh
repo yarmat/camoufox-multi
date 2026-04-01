@@ -5,10 +5,14 @@ set -e
 bash /scripts/setup-proxy.sh
 
 # ── Virtual display ──────────────────────────────────────────────────────────
-# Add margin so noVNC fits the full Firefox window (Camoufox screen size is approximate)
+# Run Xvfb at exactly CAM_SCREEN so window.screen.availWidth == window.screen.width.
+# The +200px margin was previously used for window decorations, but it caused
+# availWidth to exceed screen.width — a physically impossible value detectable by
+# bot-detection scripts. The browser window is now sized 80px shorter than the
+# screen to leave room for the Firefox titlebar (see browser.py _window_size).
 _CAM_SCREEN="${CAM_SCREEN:-1600x980}"
-_XVFB_W=$(( ${_CAM_SCREEN%%x*} + 200 ))
-_XVFB_H=$(( ${_CAM_SCREEN##*x} + 200 ))
+_XVFB_W=${_CAM_SCREEN%%x*}
+_XVFB_H=${_CAM_SCREEN##*x}
 rm -f /tmp/.X99-lock /tmp/.X11-unix/X99
 Xvfb :99 -screen 0 "${_XVFB_W}x${_XVFB_H}x24" &
 export DISPLAY=:99
