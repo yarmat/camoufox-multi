@@ -135,7 +135,7 @@ CAM_OS=$CAM_OS
 CAM_SEED=$CAM_SEED
 CAM_SCREEN=$CAM_SCREEN
 TZ=$TZ
-HOMEPAGE=https://ipleak.net
+HOMEPAGE=https://google.com
 EOF
 
 echo ""

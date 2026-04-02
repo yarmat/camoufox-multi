@@ -9,7 +9,7 @@ import time
 
 proxy_url  = os.getenv("PROXY")
 os_type    = os.getenv("CAM_OS", "windows")
-homepage   = os.getenv("HOMEPAGE", "https://ipleak.net")
+homepage   = os.getenv("HOMEPAGE", "https://google.com")
 
 fp_config = build_fp_config(int(os.getenv("CAM_SEED", "0")))
 

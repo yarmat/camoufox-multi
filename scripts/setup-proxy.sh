@@ -41,6 +41,9 @@ if ! echo "$PROXY_HOST" | grep -qP '^\d{1,3}(\.\d{1,3}){3}$'; then
         exit 1
     fi
     echo "[proxy] Resolved $PROXY_HOST → $PROXY_IP"
+    # Pin the resolved IP in /etc/hosts so Python scripts (warmup.py, etc.)
+    # can still resolve the proxy hostname after DNS port 53 is blocked.
+    echo "${PROXY_IP}  ${PROXY_HOST}" >> /etc/hosts
 else
     PROXY_IP="$PROXY_HOST"
 fi

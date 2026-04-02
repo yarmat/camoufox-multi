@@ -66,7 +66,7 @@ RUN camoufox fetch \
     && chown -R user:user /home/user/.cache/camoufox
 
 COPY scripts/ /scripts/
-RUN chmod +x /scripts/start.sh /scripts/setup-proxy.sh /scripts/check-fingerprint.py
+RUN chmod +x /scripts/start.sh /scripts/setup-proxy.sh /scripts/check-fingerprint.py /scripts/warmup.py
 
 EXPOSE 6901
 

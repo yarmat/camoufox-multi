@@ -2,6 +2,7 @@
 accounts/*/profile/
 accounts/*/files/
 accounts/*/.env
+accounts/*/info
 
 # macOS
 .DS_Store
@@ -14,6 +15,9 @@ accounts/*/.env
 __pycache__/
 *.pyc
 *.pyo
+
+# Local warmup customizations (site-specific, not for the repo)
+scripts/warmup_custom.py
 
 # Docker
 *.log

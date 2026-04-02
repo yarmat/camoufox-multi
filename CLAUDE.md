@@ -19,11 +19,15 @@ make status                         # Show running containers with URLs
 make list                           # All accounts (running + stopped)
 make set-proxy ACCOUNT=account-1    # Update proxy without wiping profile
 make clean ACCOUNT=account-1        # Wipe Firefox profile only
+make fresh ACCOUNT=account-1        # Wipe profile + regenerate fingerprint seed
 make remove ACCOUNT=account-1       # Remove container + entire account folder
 make check-leaks ACCOUNT=account-1  # Run leak detection inside container
+make warmup ACCOUNT=account-1       # Warm up browser profile (visits sites to seed cookies/history)
 ```
 
 All account-scoped commands require `ACCOUNT=<name>`. The Makefile reads `accounts/<name>/.env` and calls `docker compose --env-file` with it.
+
+`make warmup` runs `scripts/warmup.py` inside a temporary container (not the regular one — must be stopped first). It visits a curated list of sites to make the profile look used. Connect via VNC during warmup to solve any CAPTCHAs manually.
 
 ## Architecture
 
@@ -31,7 +35,9 @@ All account-scoped commands require `ACCOUNT=<name>`. The Makefile reads `accoun
 1. `setup-proxy.sh` runs **as root** — configures redsocks + iptables transparent proxy
 2. Xvfb starts at `CAM_SCREEN + 200px` on each axis (margin ensures full Firefox window fits in noVNC)
 3. x11vnc + websockify expose the virtual display as noVNC on port 6901
-4. `gosu user python /scripts/browser.py` — drops root, launches Camoufox as unprivileged user
+4. `gosu user python ${BROWSER_SCRIPT:-/scripts/browser.py}` — drops root, launches Camoufox as unprivileged user
+
+`BROWSER_SCRIPT` env var allows running a different Python script (e.g. `warmup.py`) without changing the image. Used by `make warmup`.
 
 ### Network-level proxy isolation (`scripts/setup-proxy.sh`)
 This is the core security mechanism. Does **not** rely on the browser's proxy setting alone:
@@ -46,7 +52,9 @@ This is the core security mechanism. Does **not** rely on the browser's proxy se
 ```
 accounts/<name>/
 ├── .env       # All config: PROXY, PORT, VNC_PW, CAM_OS, CAM_SEED, CAM_SCREEN, TZ, HOMEPAGE
-└── profile/   # Persistent Firefox profile (mounted → /home/user/.mozilla)
+├── profile/   # Persistent Firefox profile (mounted → /home/user/.mozilla)
+├── files/     # Files accessible inside the browser (mounted → /home/user/files)
+└── info       # Optional notes (gitignored)
 ```
 
 ### `.env` variables
@@ -59,7 +67,7 @@ accounts/<name>/
 | `CAM_SEED` | Stable per-account fingerprint seed (random uint32, derived into canvas/font/audio offsets) |
 | `CAM_SCREEN` | Virtual screen resolution in `WxH` format, e.g. `1280x720` |
 | `TZ` | Container timezone (auto-detected from proxy geolocation) |
-| `HOMEPAGE` | First page opened on start |
+| `HOMEPAGE` | First page opened on start (default: `https://google.com`) |
 
 ### Fingerprint protection layers
 - **Camoufox** — patches canvas, WebGL strings, navigator, UA, disables WebRTC

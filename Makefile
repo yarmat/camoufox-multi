@@ -25,6 +25,7 @@ help:
 	@echo "  make fresh  ACCOUNT=<name>    Wipe profile + generate new fingerprint seed"
 	@echo "  make remove ACCOUNT=<name>    Remove container + account folder"
 	@echo "  make check-leaks ACCOUNT=<name> Run leak detection inside container"
+	@echo "  make warmup ACCOUNT=<name>    Warm up browser profile (cookies/history)"
 	@echo "  make build                    Build Docker image"
 
 # ─── Core ────────────────────────────────────────────────────────────────────
@@ -121,6 +122,30 @@ check-leaks: _require-account
 	fi; \
 	echo "Running leak checks inside $$container ..."; \
 	docker exec -i -u root "$$container" bash < scripts/check-leaks.sh
+
+# ─── Profile Warm-up ─────────────────────────────────────────────────────────
+
+.PHONY: warmup
+warmup: _require-account
+	@container="camoufox-$(ACCOUNT)"; \
+	if docker ps --format '{{.Names}}' | grep -q "^$$container$$"; then \
+		echo "Error: '$$container' is running — stop it first: make down ACCOUNT=$(ACCOUNT)"; \
+		exit 1; \
+	fi; \
+	port=$$(grep '^PORT=' accounts/$(ACCOUNT)/.env | cut -d= -f2); \
+	echo "Starting profile warm-up for $(ACCOUNT)..."; \
+	echo "Connect via VNC to solve CAPTCHAs if needed: http://localhost:$$port/vnc.html"; \
+	echo "Press Ctrl+C when done."; \
+	docker run --rm \
+		--name "$$container-warmup" \
+		--env-file accounts/$(ACCOUNT)/.env \
+		-e BROWSER_SCRIPT=/scripts/warmup.py \
+		-p "127.0.0.1:$${port}:6901" \
+		-v "$(PWD)/accounts/$(ACCOUNT)/profile:/home/user/.mozilla:rw" \
+		-v "$(PWD)/accounts/$(ACCOUNT)/files:/home/user/files:rw" \
+		--cap-add NET_ADMIN \
+		--shm-size 512m \
+		camoufox
 
 # ─── Cleanup ─────────────────────────────────────────────────────────────────
 

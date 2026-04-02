@@ -37,6 +37,8 @@ open http://localhost:<PORT>/vnc.html
 | `make list` | All accounts (running + stopped) |
 | `make set-proxy ACCOUNT=<name>` | Update proxy without wiping profile |
 | `make clean ACCOUNT=<name>` | Wipe Firefox profile only |
+| `make fresh ACCOUNT=<name>` | Wipe profile + regenerate fingerprint seed |
+| `make warmup ACCOUNT=<name>` | Warm up browser profile (seeds cookies/history) |
 | `make remove ACCOUNT=<name>` | Remove container + entire account folder |
 | `make check-leaks ACCOUNT=<name>` | Run leak detection inside container |
 
@@ -53,7 +55,7 @@ Each account lives in `accounts/<name>/.env`:
 | `CAM_SEED` | `1234567890` | Stable fingerprint seed (random per account) |
 | `CAM_SCREEN` | `1280x720` | Virtual screen resolution (WxH) |
 | `TZ` | `Europe/Berlin` | Container timezone (auto-detected from proxy) |
-| `HOMEPAGE` | `https://ipleak.net` | First page opened on start |
+| `HOMEPAGE` | `https://google.com` | First page opened on start |
 
 ## Architecture
 
@@ -62,7 +64,7 @@ Each account lives in `accounts/<name>/.env`:
 1. **`setup-proxy.sh`** runs as root — configures `redsocks` + `iptables` transparent proxy
 2. **Xvfb** starts with resolution `CAM_SCREEN + 200px` margin (ensures the full Firefox window fits in noVNC)
 3. **x11vnc** + **websockify** expose the virtual display as noVNC on port 6901
-4. **`browser.py`** drops root via `gosu` and launches Camoufox as an unprivileged user
+4. **`browser.py`** drops root via `gosu` and launches Camoufox as an unprivileged user (script can be overridden via `BROWSER_SCRIPT` env — used by `make warmup`)
 
 ### Network-level proxy isolation
 
@@ -97,6 +99,28 @@ The core isolation mechanism does **not** rely on the browser's built-in proxy s
 
 noVNC is bound to `127.0.0.1` only — not exposed on LAN. Access at `http://localhost:<PORT>/vnc.html`.
 
+## Profile warm-up
+
+Fresh profiles look suspicious — no cookies, no history. Run the warm-up before using an account for the first time:
+
+```bash
+# Container must be stopped
+make warmup ACCOUNT=account-1
+```
+
+The script visits a curated set of neutral sites (Wikipedia, Stack Overflow, BBC News) and simulates natural reading behaviour (scroll, dwell, scroll back). Connect via VNC during the run to solve any CAPTCHAs manually. Google / YouTube are intentionally excluded from the automated list — they trigger reCAPTCHA on fresh profiles; visit them manually via VNC after the script finishes.
+
+**Custom sites** (e.g. the platform you're targeting) can be added without touching this file: create `scripts/warmup_custom.py` (gitignored) and define `WARMUP_PLAN_EXTRA` there:
+
+```python
+# scripts/warmup_custom.py
+WARMUP_PLAN_EXTRA = [
+    ("My Site", "https://example.com/feed", 20, 40),
+]
+```
+
+It will be appended automatically to the base plan.
+
 ## Security audit (Claude Code)
 
 If you use [Claude Code](https://claude.ai/code), you can run a full privacy and security audit of your accounts directly from the CLI:
@@ -113,7 +137,8 @@ The skill reads all relevant scripts and config, then checks for proxy leaks, DN
 accounts/<name>/
 ├── .env       # Account config (proxy, port, fingerprint settings)
 ├── profile/   # Persistent Firefox profile (mounted → /home/user/.mozilla)
-└── files/     # Shared folder for uploading files into the browser (mounted → /home/user/files)
+├── files/     # Shared folder for uploading files into the browser (mounted → /home/user/files)
+└── info       # Optional notes (gitignored)
 ```
 
 To make a file accessible inside the browser, copy it into `accounts/<name>/files/` and open it via:

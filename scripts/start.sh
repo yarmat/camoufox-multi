@@ -30,4 +30,5 @@ sleep 1
 websockify --web=/usr/share/novnc 6901 localhost:5900 &
 
 # ── Drop root, launch browser as unprivileged user ───────────────────────────
-exec gosu user python /scripts/browser.py
+# BROWSER_SCRIPT can be overridden (e.g. /scripts/warmup.py) via docker run -e
+exec gosu user python "${BROWSER_SCRIPT:-/scripts/browser.py}"
